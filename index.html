@@ -6,7 +6,8 @@
 <meta name="theme-color" content="#101418"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <title>Projet Aura — Prototype</title>
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script><script>eruda.init();</script>
+<link rel="manifest" href="./manifest.json"/>
+<script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}</script>
 <style>
 :root{--ink:#22303f;--paper:#fdf6ec;--acc:#e58bb1;--ok:#7bc96f}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -14,24 +15,26 @@ html,body{margin:0;height:100%;overflow:hidden;background:#101418;font-family:ui
 #app{position:fixed;inset:0}canvas{display:block}
 .hud{position:fixed;inset:0;pointer-events:none;z-index:5}
 .chip{background:rgba(20,28,38,.72);backdrop-filter:blur(6px);border-radius:14px;padding:6px 10px;font-size:13px;line-height:1.25}
-#topbar{position:absolute;top:calc(8px + env(safe-area-inset-top));left:10px;display:flex;gap:8px;align-items:center}
+#topbar{position:absolute;top:calc(8px + env(safe-area-inset-top));left:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #buffChip{background:rgba(255,180,80,.85);color:#3a2506;font-weight:700;display:none}
+#questChip{background:rgba(123,201,111,.85);color:#17300f;font-weight:600;display:none}
 #bagBtn{position:absolute;top:calc(8px + env(safe-area-inset-top));right:10px;width:44px;height:44px;border-radius:50%;border:0;font-size:20px;background:rgba(20,28,38,.72);color:#fff}
-#prompt{position:absolute;left:50%;transform:translateX(-50%);bottom:172px;text-align:center;max-width:86vw;opacity:0;transition:opacity .15s}
+#prompt{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(250px + env(safe-area-inset-bottom));text-align:center;max-width:86vw;opacity:0;transition:opacity .15s}
 #prompt.on{opacity:1}
-#stickBase{position:absolute;left:26px;bottom:calc(26px + env(safe-area-inset-bottom));width:112px;height:112px;border-radius:50%;background:rgba(255,255,255,.10);border:1.5px solid rgba(255,255,255,.25)}
-#stickKnob{position:absolute;left:50%;top:50%;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.55);transform:translate(-50%,-50%)}
-#actionBtn{position:absolute;right:24px;bottom:calc(56px + env(safe-area-inset-bottom));width:84px;height:84px;border-radius:50%;border:0;font-size:34px;background:var(--acc);box-shadow:0 6px 18px rgba(0,0,0,.35);color:#fff}
-#toolBar{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));display:flex;gap:10px}
+#stickBase{position:absolute;left:20px;bottom:calc(100px + env(safe-area-inset-bottom));width:128px;height:128px;border-radius:50%;background:rgba(255,255,255,.10);border:1.5px solid rgba(255,255,255,.30);pointer-events:auto;touch-action:none}
+#stickKnob{position:absolute;left:50%;top:50%;width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.60);transform:translate(-50%,-50%)}
+#actionBtn{position:absolute;right:22px;bottom:calc(150px + env(safe-area-inset-bottom));width:88px;height:88px;border-radius:50%;border:0;font-size:36px;background:var(--acc);box-shadow:0 6px 18px rgba(0,0,0,.35);color:#fff}
+#toolBar{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));display:flex;gap:10px}
 .tool{width:52px;height:52px;border-radius:50%;border:2px solid rgba(255,255,255,.25);background:rgba(20,28,38,.72);font-size:22px;color:#fff;pointer-events:auto}
 .tool.sel{border-color:var(--acc);background:rgba(229,139,177,.30);transform:translateY(-4px)}
-.panel{position:absolute;right:8px;top:calc(62px + env(safe-area-inset-top));width:min(300px,86vw);max-height:70vh;overflow:auto;background:var(--paper);color:var(--ink);border-radius:16px;padding:12px 14px;display:none;pointer-events:auto}
+.panel{position:absolute;right:8px;top:calc(62px + env(safe-area-inset-top));width:min(320px,88vw);max-height:72vh;overflow:auto;background:var(--paper);color:var(--ink);border-radius:16px;padding:12px 14px;display:none;pointer-events:auto}
 .panel h3{margin:8px 0 4px;font-size:14px}
 .row{display:flex;justify-content:space-between;font-size:13px;margin:3px 0}
 .bar{height:6px;background:#e7ddcb;border-radius:3px;overflow:hidden;margin:2px 0 6px}
 .bar>i{display:block;height:100%;background:var(--acc)}
-#dlg{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));width:min(420px,92vw);background:var(--paper);color:var(--ink);border-radius:16px;padding:14px;display:none;pointer-events:auto}
+#dlg{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(160px + env(safe-area-inset-bottom));width:min(440px,94vw);max-height:60vh;overflow:auto;background:var(--paper);color:var(--ink);border-radius:16px;padding:14px;display:none;pointer-events:auto}
 #dlg button,#panel button{margin:6px 6px 0 0;padding:8px 12px;border:0;border-radius:10px;background:var(--ink);color:#fff;font-size:13px}
+#dlg button:disabled,#panel button:disabled{opacity:.45}
 #mini{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:min(320px,84vw);display:none;text-align:center}
 #miniTrack{height:26px;border-radius:13px;background:rgba(20,28,38,.8);position:relative;overflow:hidden;margin-top:8px}
 #miniZone{position:absolute;top:0;bottom:0;background:rgba(123,201,111,.85)}
@@ -39,11 +42,11 @@ html,body{margin:0;height:100%;overflow:hidden;background:#101418;font-family:ui
 #photoModal{position:fixed;inset:0;background:rgba(10,14,18,.86);display:none;align-items:center;justify-content:center;z-index:9}
 #photoModal img{max-width:88vw;max-height:70vh;border-radius:12px;border:4px solid #fff}
 #photoModal button{position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;width:44px;height:44px;border-radius:50%;border:0;font-size:18px}
-#toasts{position:absolute;top:calc(56px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center}
+#toasts{position:absolute;top:calc(96px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center}
 .toast{background:rgba(20,28,38,.85);padding:8px 14px;border-radius:12px;font-size:13px;animation:tin .2s ease}
 @keyframes tin{from{opacity:0;transform:translateY(-6px)}to{opacity:1}}
 #intro{position:fixed;inset:0;background:rgba(10,14,18,.78);display:flex;align-items:center;justify-content:center;z-index:10}
-#intro .card{background:var(--paper);color:var(--ink);border-radius:18px;padding:20px;max-width:340px;font-size:14px;line-height:1.5}
+#intro .card{background:var(--paper);color:var(--ink);border-radius:18px;padding:20px;max-width:360px;font-size:14px;line-height:1.5;max-height:86vh;overflow:auto}
 #intro button{width:100%;margin-top:12px;padding:12px;border:0;border-radius:12px;background:var(--acc);color:#fff;font-size:16px;font-weight:700}
 button{pointer-events:auto;cursor:pointer}
 </style>
@@ -51,7 +54,12 @@ button{pointer-events:auto;cursor:pointer}
 <body>
 <div id="app"></div>
 <div class="hud">
-  <div id="topbar"><div class="chip" id="dayLabel">Jour 1 · Printemps · 06:00</div><div class="chip" id="buffChip">✨ Concentration</div></div>
+  <div id="topbar">
+    <div class="chip" id="dayLabel">Jour 1 · Printemps · 06:00</div>
+    <div class="chip" id="coinsChip">🪙 0</div>
+    <div class="chip" id="buffChip">✨</div>
+    <div class="chip" id="questChip"></div>
+  </div>
   <button id="bagBtn" class="btn">🎒</button>
   <div class="chip" id="prompt"></div>
   <div id="stickBase"><div id="stickKnob"></div></div>
@@ -63,16 +71,15 @@ button{pointer-events:auto;cursor:pointer}
   <div id="dlg"></div>
 </div>
 <div id="photoModal"><img id="photoImg" alt="photo"/><button class="btn" id="photoClose">✕</button></div>
-<div id="intro"><div class="card"><b>✨ Projet Aura — Prototype</b><br>Vallée d'Aura, calme et bienveillante : zéro combat, zéro perte.<br><br>🕹️ Joystick (gauche) : se déplacer<br>👆 Glisser (droite) : caméra<br>🔘 ACTION : interagir / pêcher / cuisiner<br> Toolkit en bas : change d'outil<br><br>Récolte, arrose, mine, pêche, photographie les papillons, cuisine à la marmite, parle à Liora, et aide au pont communautaire près de la rivière.<button class="btn" id="introGo">Commencer</button></div></div>
+<div id="intro"><div class="card"><b>✨ Projet Aura — Prototype v2</b><br>Vallée d'Aura, calme et bienveillante : zéro combat, zéro perte.<br><br>🕹️ <b>Joystick</b> (bas gauche) : se déplacer<br>👆 Glisser ailleurs : caméra<br>🔘 <b>ACTION</b> : interagir / pêcher / cuisiner<br>🧰 Barre du bas : changer d'outil<br><br><b>Nouveautés :</b> 🪙 pièces & boutique cosmétique chez Liora · 🧺 quêtes quotidiennes (Liora & Milo) · 🌧️ météo : la pluie double la pousse et révèle le <b>poisson doré</b> · 🔩 minerai de fer (Minage n.5) et cristal (n.10) · 🌸 fleurs · 🎃 nouvelles parcelles · 🍲 2 recettes (Concentration / Légèreté) · 🏛️ 2 projets communautaires (pont, fontaine) · 🌙 lucioles & lampadaires la nuit · 📸 photos souvenirs<br><button class="btn" id="introGo">Commencer</button></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.149.0/three.min.js"></script>
 <script>
-/* Diagnostic : alerte visible si le CDN est bloqué ou si une erreur JS survient */
-window.addEventListener('error',function(e){alert('⚠️ Erreur JS : '+e.message+' (ligne '+e.lineno+')');});
-setTimeout(function(){if(typeof THREE==='undefined')alert('⚠️ Three.js non chargé : le CDN est bloqué par ton réseau (essaie en 4G/5G).');},5000);
+window.addEventListener('error',function(e){if(!window.__eSent){window.__eSent=1;alert('⚠️ Erreur JS : '+e.message+' (ligne '+e.lineno+')');}});
+setTimeout(function(){if(typeof THREE==='undefined')alert('⚠️ Three.js non chargé : CDN bloqué (essaie en 4G/5G).');},5000);
 </script>
 <script>
-/* ---------- CONFIG & ÉTAT ---------- */
+/* ================= CONFIG & ÉTAT ================= */
 const KEY='aura_save_v1', DAY_LEN=150, SEASON_DAYS=7, NEXT_XP=50;
 const SEASONS=['Printemps','Été','Automne','Hiver'];
 const SEASON_GROUND=[0xa9d98b,0xc2d97a,0xd9b077,0xdfe9ef].map(c=>new THREE.Color(c));
@@ -82,17 +89,30 @@ const TOOLS=[
  {id:'pioche',emoji:'⛏️',label:'Pioche'},
  {id:'canne',emoji:'🎣',label:'Canne à pêche'},
  {id:'photo',emoji:'📷',label:'Appareil spirituel'}];
-const S={inv:{Baie:0,Bois:0,Champignon:0,Cuivre:0,Tomate:0,Carotte:0,Poisson:0,Photo:0,Poudre_lum:0},
+const PRICES={Baie:3,Champignon:4,Bois:2,Pierre:2,Cuivre:8,Fer:15,Cristal:40,Tomate:6,Carotte:5,Citrouille:12,'Blé':5,Poisson:10,'Poisson doré':40,Fleur:3,'Poudre lumineuse':8};
+const COSMETICS=[
+ {id:'hatC',kind:'hat',name:'Chapeau corail',col:0xff8a80,price:60},
+ {id:'hatG',kind:'hat',name:'Chapeau doré',col:0xffd54f,price:300},
+ {id:'bodyM',kind:'body',name:'Tenue menthe',col:0x7dcea0,price:100},
+ {id:'bodyN',kind:'body',name:'Tenue nuit',col:0x5c6bc0,price:250}];
+const DEF_INV={Baie:0,Bois:0,Champignon:0,Pierre:0,Cuivre:0,Fer:0,Cristal:0,Tomate:0,Carotte:0,Citrouille:0,'Blé':0,Poisson:0,'Poisson doré':0,Fleur:0,'Poudre lumineuse':0,Photo:0};
+const S={inv:{...DEF_INV},
  skills:{Cueillette:0,Minage:0,Agriculture:0,'Pêche':0,Cuisine:0,Photo:0},
- friendship:0,chatDay:0,giftDay:0,day:1,cycle:0.02,season:0,community:0,bridge:false,quests:[false,false,false],buffUntil:0,seen:false};
-try{const d=JSON.parse(localStorage.getItem(KEY)||'null'); if(d&&d.v===1)Object.assign(S,d,{cycle:0.02,buffUntil:0});}catch(e){}
+ coins:0,friendship:0,friendM:0,chatDay:0,giftDay:0,chatDayM:0,giftDayM:0,
+ day:1,cycle:0.02,season:0,rain:false,community:0,community2:0,bridge:false,fountain:false,lantern:false,
+ quests:[false,false,false],qL:{day:0,active:false},qM:{day:0,active:false},
+ buffUntil:0,speedUntil:0,cos:[],hat:null,body:null,seen:false};
+try{const d=JSON.parse(localStorage.getItem(KEY)||'null');if(d&&(d.v===1||d.v===2)){Object.assign(S,d,{cycle:0.02,buffUntil:0,speedUntil:0});}}catch(e){}
+for(const k in DEF_INV)if(!(k in S.inv))S.inv[k]=0;
+if(!S.qL)S.qL={day:0,active:false}; if(!S.qM)S.qM={day:0,active:false};
+S.v=2;
 const lvl=x=>Math.min(100,Math.floor(x/NEXT_XP)+1);
-let dirty=false, buffOn=false;
-function save(){localStorage.setItem(KEY,JSON.stringify({v:1,inv:S.inv,skills:S.skills,friendship:S.friendship,chatDay:S.chatDay,giftDay:S.giftDay,day:S.day,season:S.season,community:S.community,bridge:S.bridge,quests:S.quests,seen:S.seen}));dirty=false;}
+let dirty=false,buffOn=false;
+function save(){S.v=2;localStorage.setItem(KEY,JSON.stringify(S));dirty=false;}
 function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;toasts.appendChild(t);setTimeout(()=>t.remove(),2600);}
-function gainXP(sk,amt){if(performance.now()<S.buffUntil)amt=Math.round(amt*1.5);const before=lvl(S.skills[sk]);S.skills[sk]+=amt;if(lvl(S.skills[sk])>before){toast(`⭐ ${sk} niveau ${lvl(S.skills[sk])} !`);if(sk==='Minage'&&lvl(S.skills[sk])>=25)toast('⛏️ Palium & Cristal à portée de pioche !');}dirty=true;refreshPanel();}
+function gainXP(sk,amt){if(performance.now()<S.buffUntil)amt=Math.round(amt*1.5);const b=lvl(S.skills[sk]);S.skills[sk]+=amt;if(lvl(S.skills[sk])>b){toast(`⭐ ${sk} niveau ${lvl(S.skills[sk])} !`);if(sk==='Agriculture'&&lvl(S.skills[sk])===5)toast('💧 Arrosoir amélioré : arrose en 3x3 !');if(sk==='Minage'&&lvl(S.skills[sk])===5)toast('🔩 Tu sais extraire le Fer !');if(sk==='Minage'&&lvl(S.skills[sk])===10)toast('💎 Tu sais extraire le Cristal !');}dirty=true;refreshPanel();}
 
-/* ---------- RENDU THREE.JS ---------- */
+/* ================= RENDU ================= */
 const app=document.getElementById('app');
 const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
@@ -105,129 +125,187 @@ const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,0.1,220);
 const hemi=new THREE.HemisphereLight(0xffe9c9,0xb7c9a0,0.6);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xfff2d8,2.2);scene.add(sun,sun.target);
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
-
 const L=(c)=>new THREE.MeshLambertMaterial({color:c});
 const ground=new THREE.Mesh(new THREE.PlaneGeometry(150,150),L(SEASON_GROUND[S.season].getHex()));
 ground.rotation.x=-Math.PI/2;scene.add(ground);
-function blobShadow(r=0.5){const m=new THREE.Mesh(new THREE.CircleGeometry(r,20),new THREE.MeshBasicMaterial({color:0x223311,transparent:true,opacity:0.22}));m.rotation.x=-Math.PI/2;m.position.y=0.015;return m;}
+function blobShadow(r){r=r||0.5;const m=new THREE.Mesh(new THREE.CircleGeometry(r,20),new THREE.MeshBasicMaterial({color:0x223311,transparent:true,opacity:0.22}));m.rotation.x=-Math.PI/2;m.position.y=0.015;return m;}
 
-/* joueur */
+/* ================= JOUEUR ================= */
 const player=new THREE.Group();
 const pBody=new THREE.Mesh(new THREE.CapsuleGeometry(0.28,0.55,6,12),L(0xffd27a));pBody.position.y=0.72;
 const pHead=new THREE.Mesh(new THREE.SphereGeometry(0.24,16,12),L(0xffe0c2));pHead.position.y=1.32;
 const pHat=new THREE.Mesh(new THREE.ConeGeometry(0.3,0.28,10),L(0xa8d8f0));pHat.position.y=1.55;
 player.add(pBody,pHead,pHat,blobShadow(0.55));player.position.set(0,0,4);scene.add(player);
+function applyCos(){if(S.hat){const c=COSMETICS.find(x=>x.id===S.hat);if(c)pHat.material.color.setHex(c.col);}if(S.body){const c=COSMETICS.find(x=>x.id===S.body);if(c)pBody.material.color.setHex(c.col);}}
+applyCos();
 
-/* maison, marmite, PNJ */
+/* ================= VILLAGE ================= */
 function house(x,z){const g=new THREE.Group();const b=new THREE.Mesh(new THREE.BoxGeometry(4,2.4,3.4),L(0xf2e3c8));b.position.y=1.2;const r=new THREE.Mesh(new THREE.ConeGeometry(3.1,1.6,4),L(0xd98a7a));r.position.y=3.1;r.rotation.y=Math.PI/4;const d=new THREE.Mesh(new THREE.BoxGeometry(0.8,1.3,0.1),L(0x8a6a4a));d.position.set(0,0.65,1.75);g.add(b,r,d,blobShadow(2.2));g.position.set(x,0,z);scene.add(g);}
 house(8,11);
+function house2(x,z){const g=new THREE.Group();const b=new THREE.Mesh(new THREE.BoxGeometry(3,2,2.8),L(0xe8d8f0));b.position.y=1;const r=new THREE.Mesh(new THREE.ConeGeometry(2.6,1.4,4),L(0x9a8ac8));r.position.y=2.6;r.rotation.y=Math.PI/4;g.add(b,r,blobShadow(1.8));g.position.set(x,0,z);scene.add(g);}
+house2(11,8.5);
 const pot=new THREE.Group();const potB=new THREE.Mesh(new THREE.CylinderGeometry(0.45,0.35,0.6,14),L(0x4a4a52));potB.position.y=0.5;const potG=new THREE.Mesh(new THREE.SphereGeometry(0.18,10,8),new THREE.MeshBasicMaterial({color:0xffd27a}));potG.position.y=0.9;pot.add(potB,potG,blobShadow(0.6));pot.position.set(5.6,0,9);scene.add(pot);
-const npc=new THREE.Group();const nB=new THREE.Mesh(new THREE.CapsuleGeometry(0.26,0.5,6,12),L(0xc3a6e8));nB.position.y=0.66;const nH=new THREE.Mesh(new THREE.SphereGeometry(0.22,16,12),L(0xffd9b8));nH.position.y=1.2;const nHat=new THREE.Mesh(new THREE.ConeGeometry(0.3,0.34,10),L(0xf0a8c8));nHat.position.y=1.5;npc.add(nB,nH,nHat,blobShadow(0.5));npc.position.set(6.5,0,7.4);scene.add(npc);
+function makeNPC(x,z,cols){const g=new THREE.Group();const b=new THREE.Mesh(new THREE.CapsuleGeometry(0.26,0.5,6,12),L(cols.body));b.position.y=0.66;const h=new THREE.Mesh(new THREE.SphereGeometry(0.22,16,12),L(0xffd9b8));h.position.y=1.2;const ht=new THREE.Mesh(new THREE.ConeGeometry(0.3,0.34,10),L(cols.hat));ht.position.y=1.5;g.add(b,h,ht,blobShadow(0.5));g.position.set(x,0,z);g.userData.baseY=0;scene.add(g);return g;}
+const npc=makeNPC(6.5,7.4,{body:0xc3a6e8,hat:0xf0a8c8});
+const milo=makeNPC(12.6,-3.2,{body:0x7ec8d8,hat:0xf5efe0});
 
-/* décor : étang, rivière, pont, arbres, rochers */
+/* Lampadaires */
+const lamps=[];
+function lamp(x,z){const g=new THREE.Group();const p=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.08,1.6,8),L(0x4a4a52));p.position.y=0.8;const head=new THREE.Mesh(new THREE.SphereGeometry(0.16,10,8),new THREE.MeshBasicMaterial({color:0x665f4a}));head.position.y=1.7;const li=new THREE.PointLight(0xffd9a0,0,11);li.position.y=1.7;g.add(p,head,li,blobShadow(0.3));g.position.set(x,0,z);scene.add(g);lamps.push({head,li});}
+lamp(10.2,9.6);lamp(2.2,4.6);
+const lanternLamp={head:null,li:null};
+if(S.lantern){const g=new THREE.Group();const p=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.07,1.3,8),L(0x4a4a52));p.position.y=0.65;const head=new THREE.Mesh(new THREE.SphereGeometry(0.15,10,8),new THREE.MeshBasicMaterial({color:0x665f4a}));head.position.y=1.4;const li=new THREE.PointLight(0xffd9a0,0,10);li.position.y=1.4;g.add(p,head,li,blobShadow(0.3));g.position.set(7.6,0,9.2);scene.add(g);lanternLamp.head=head;lanternLamp.li=li;}
+
+/* Fontaine (décor après construction) */
+const fountain=new THREE.Group();const fb=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.3,0.5,18),L(0x9aa3ab));fb.position.y=0.25;const fw=new THREE.Mesh(new THREE.CircleGeometry(0.95,18),new THREE.MeshBasicMaterial({color:0x6fb9dd}));fw.rotation.x=-Math.PI/2;fw.position.y=0.52;const fc=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.2,0.9,10),L(0x9aa3ab));fc.position.y=0.9;fountain.add(fb,fw,fc,blobShadow(1.3));fountain.position.set(-2,0,-2);fountain.visible=S.fountain;scene.add(fountain);
+
+/* Eau */
 const pond=new THREE.Mesh(new THREE.CircleGeometry(6,36),new THREE.MeshBasicMaterial({color:0x6fb9dd}));pond.rotation.x=-Math.PI/2;pond.position.set(13,0.03,-9);scene.add(pond);
 const river=new THREE.Mesh(new THREE.PlaneGeometry(3.2,150),new THREE.MeshBasicMaterial({color:0x6fb9dd}));river.rotation.x=-Math.PI/2;river.position.set(-22,0.02,0);scene.add(river);
-const bridge=new THREE.Group();[[-1.4],[0],[1.4]].forEach(([x])=>{const p=new THREE.Mesh(new THREE.BoxGeometry(1.3,0.15,3.4),L(0xa9825a));p.position.set(x,0.35,0);bridge.add(p);});bridge.position.set(-22,0,4);bridge.visible=S.bridge;scene.add(bridge);
+const bridge=new THREE.Group();[[-1.4],[0],[1.4]].forEach(a=>{const p=new THREE.Mesh(new THREE.BoxGeometry(1.3,0.15,3.4),L(0xa9825a));p.position.set(a[0],0.35,0);bridge.add(p);});bridge.position.set(-22,0,4);bridge.visible=S.bridge;scene.add(bridge);
 
-/* ---------- NOEUDS INTERACTIFS ---------- */
+/* Pluie */
+const rainGeo=new THREE.BufferGeometry();
+const rainPos=new Float32Array(500*3);
+for(let i=0;i<500;i++){rainPos[i*3]=(Math.random()-0.5)*44;rainPos[i*3+1]=Math.random()*18;rainPos[i*3+2]=(Math.random()-0.5)*44;}
+rainGeo.setAttribute('position',new THREE.BufferAttribute(rainPos,3));
+const rain=new THREE.Points(rainGeo,new THREE.PointsMaterial({color:0xaaccee,size:0.12,transparent:true,opacity:0.7}));
+rain.visible=false;scene.add(rain);
+
+/* ================= NOEUDS ================= */
 const nodes=[];
 function addNode(n){n.pos=n.pos||n.mesh.position;n.alive=n.alive!==false;n.respawnAt=0;nodes.push(n);scene.add(n.mesh);return n;}
 function tree(x,z){const g=new THREE.Group();const t=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.24,1.5,8),L(0x8a6a4a));t.position.y=0.75;const f=new THREE.Mesh(new THREE.SphereGeometry(1.05,10,8),L(0x7ecb7e));f.position.y=1.9;const f2=new THREE.Mesh(new THREE.SphereGeometry(0.7,10,8),L(0x93d693));f2.position.set(0.5,2.5,0.2);g.add(t,f,f2,blobShadow(1));g.position.set(x,0,z);return addNode({kind:'tree',mesh:g,label:'Arbre',tool:'faucille',range:2.6,wob:0});}
 function bush(x,z){const g=new THREE.Group();const b=new THREE.Mesh(new THREE.SphereGeometry(0.5,10,8),L(0x6fbf73));b.scale.y=0.75;b.position.y=0.35;g.add(b);for(let i=0;i<3;i++){const be=new THREE.Mesh(new THREE.SphereGeometry(0.07,8,6),L(0xe58bb1));be.position.set(Math.cos(i*2.1)*0.4,0.5,Math.sin(i*2.1)*0.4);g.add(be);}g.position.set(x,0,z);return addNode({kind:'bush',mesh:g,label:'Buisson à baies',tool:'faucille',range:2.2});}
 function shroom(x,z){const g=new THREE.Group();const st=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,0.3,8),L(0xf5efe0));st.position.y=0.15;const cap=new THREE.Mesh(new THREE.SphereGeometry(0.24,10,8),L(0xe08a8a));cap.scale.y=0.55;cap.position.y=0.32;g.add(st,cap);g.position.set(x,0,z);return addNode({kind:'shroom',mesh:g,label:'Champignon',tool:'faucille',range:2});}
-function rock(x,z){const g=new THREE.Group();const r=new THREE.Mesh(new THREE.DodecahedronGeometry(0.7),L(0x9aa3ab));r.position.y=0.45;g.add(r);for(let i=0;i<3;i++){const c=new THREE.Mesh(new THREE.SphereGeometry(0.11,8,6),L(0xe59b5f));c.position.set(Math.cos(i*2.2)*0.55,0.6,Math.sin(i*2.2)*0.55);g.add(c);}g.position.set(x,0,z);return addNode({kind:'rock',mesh:g,label:'Filon de cuivre',tool:'pioche',range:2.4,hp:3});}
+function flower(x,z,col){const g=new THREE.Group();const st=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.03,0.35,6),L(0x6fbf73));st.position.y=0.17;const fl=new THREE.Mesh(new THREE.SphereGeometry(0.1,8,6),new THREE.MeshBasicMaterial({color:col}));fl.position.y=0.38;g.add(st,fl);g.position.set(x,0,z);return addNode({kind:'flower',mesh:g,label:'Fleur sauvage',tool:'faucille',range:2});}
+function rockNode(x,z,kind,minLvl){const g=new THREE.Group();const col=kind==='rock'?0x9aa3ab:(kind==='iron'?0x7a8494:0x86e8e0);const geo=kind==='cristal'?new THREE.OctahedronGeometry(0.75):new THREE.DodecahedronGeometry(0.7);const r=new THREE.Mesh(geo,L(col));r.position.y=0.45;if(kind==='cristal')r.material=new THREE.MeshBasicMaterial({color:0x9adfe8});g.add(r);
+ const spec=kind==='rock'?0xe59b5f:(kind==='iron'?0xcfd6dd:0xffffff);
+ for(let i=0;i<3;i++){const c=new THREE.Mesh(new THREE.SphereGeometry(0.1,8,6),new THREE.MeshBasicMaterial({color:spec}));c.position.set(Math.cos(i*2.2)*0.55,0.6,Math.sin(i*2.2)*0.55);g.add(c);}
+ g.position.set(x,0,z);const lbl=kind==='rock'?'Filon de cuivre':(kind==='iron'?'Filon de fer (Minage n.'+minLvl+')':'Cristal aurique (Minage n.'+minLvl+')');
+ return addNode({kind:'ore',ore:kind,mesh:g,label:lbl,tool:'pioche',range:2.4,hp:kind==='rock'?3:(kind==='iron'?4:5),minLvl:minLvl||1});}
 const crops=[];
-function crop(x,z,fruit){const g=new THREE.Group();const soil=new THREE.Mesh(new THREE.BoxGeometry(1,0.1,1),L(0x8a6a4a));soil.position.y=0.05;const sp=new THREE.Mesh(new THREE.ConeGeometry(0.14,0.5,7),L(0x86c86f));sp.position.y=0.35;sp.visible=false;const fr=new THREE.Mesh(new THREE.SphereGeometry(0.13,10,8),L(fruit==='Tomate'?0xe06060:0xe8975f));fr.position.y=0.55;fr.visible=false;g.add(soil,sp,fr);g.position.set(x,0,z);const n=addNode({kind:'crop',mesh:g,label:`Parcelle (${fruit})`,range:2.2,stage:0,growT:0,fruit,sp,fr});crops.push(n);}
-function butterfly(x,z){const g=new THREE.Group();const w1=new THREE.Mesh(new THREE.PlaneGeometry(0.26,0.2),new THREE.MeshBasicMaterial({color:0xf6a8d8,side:THREE.DoubleSide}));w1.position.x=-0.13;const w2=w1.clone();w2.position.x=0.13;g.add(w1,w2);g.position.set(x,1.2,z);return addNode({kind:'butterfly',mesh:g,w1,w2,label:'Papillon-lune',tool:'photo',range:2.4,home:new THREE.Vector3(x,1.2,z),dir:new THREE.Vector3(1,0,0),turn:0});}
-[[3,-3],[-6,2],[9,-1],[-3,-8],[16,3]].forEach(p=>tree(...p));
-[[1,7],[-4,5],[11,6],[-8,-2],[5,-6]].forEach(p=>bush(...p));
-[[-2,9],[14,0],[-9,6],[7,-9]].forEach(p=>shroom(...p));
-[[-10,-6],[-14,8],[-6,-11],[15,-6]].forEach(p=>rock(...p));
-crop(2.5,1.5,'Tomate');crop(3.7,1.5,'Carotte');crop(2.5,0.3,'Tomate');crop(3.7,0.3,'Carotte');
-butterfly(-4,-4);butterfly(16,-3);
-addNode({kind:'fish',mesh:new THREE.Object3D(),pos:new THREE.Vector3(13,0,-2.6),label:'Étang (pêche)',tool:'canne',range:3});
-addNode({kind:'npc',mesh:npc,pos:npc.position,label:'Liora — Tisseuse',tool:null,range:2.8});
-addNode({kind:'pot',mesh:pot,pos:pot.position,label:'Marmite (cuisine)',tool:null,range:2.4});
-const siteSign=new THREE.Group();const pl=new THREE.Mesh(new THREE.BoxGeometry(0.1,1,0.5),L(0xa9825a));pl.position.y=0.5;const bd=new THREE.Mesh(new THREE.BoxGeometry(1,0.5,0.08),L(0xd9c9a0));bd.position.y=1.05;siteSign.add(pl,bd,blobShadow(0.4));siteSign.position.set(-20,0,4);scene.add(siteSign);
-addNode({kind:'site',mesh:siteSign,pos:siteSign.position,label:`Chantier du pont (${S.community}/25 rondins)`,tool:null,range:2.8});
+function crop(x,z,fruit,growT){const g=new THREE.Group();const soil=new THREE.Mesh(new THREE.BoxGeometry(1,0.1,1),L(0x8a6a4a));soil.position.y=0.05;const sp=new THREE.Mesh(new THREE.ConeGeometry(0.14,0.5,7),L(0x86c86f));sp.position.y=0.35;sp.visible=false;const cols={Tomate:0xe06060,Carotte:0xe8975f,Citrouille:0xe8862a,'Blé':0xd8c86a};const fr=new THREE.Mesh(fruit==='Citrouille'?new THREE.SphereGeometry(0.2,10,8):new THREE.SphereGeometry(0.13,10,8),L(cols[fruit]));fr.position.y=fruit==='Citrouille'?0.6:0.55;fr.visible=false;g.add(soil,sp,fr);g.position.set(x,0,z);const n=addNode({kind:'crop',mesh:g,label:'Parcelle ('+fruit+')',range:2.2,stage:0,growT:0,fruit:fruit,growMax:growT,sp:sp,fr:fr});crops.push(n);}
+function fly(x,z,col,speed){const g=new THREE.Group();const w1=new THREE.Mesh(new THREE.PlaneGeometry(0.26,0.2),new THREE.MeshBasicMaterial({color:col,side:THREE.DoubleSide}));w1.position.x=-0.13;const w2=w1.clone();w2.position.x=0.13;g.add(w1,w2);g.position.set(x,1.2,z);return addNode({kind:'butterfly',mesh:g,w1:w1,w2:w2,label:col===0xf6a8d8?'Papillon-lune':'Luciole',tool:'photo',range:2.4,night:col!==0xf6a8d8,home:new THREE.Vector3(x,1.2,z),dir:new THREE.Vector3(1,0,0),turn:0,speed:speed||1.1});}
 
-/* ---------- ENTRÉES TACTILES + CLAVIER ---------- */
+[[3,-3],[-6,2],[9,-1],[-3,-8],[16,3],[-1,-5],[13,4],[6,-4]].forEach(p=>tree(p[0],p[1]));
+[[1,7],[-4,5],[11,6],[-8,-2],[5,-6],[16,7],[-10,4]].forEach(p=>bush(p[0],p[1]));
+[[-2,9],[14,0],[-9,6],[7,-9]].forEach(p=>shroom(p[0],p[1]));
+[[0.5,4,0xf6a8d8],[7,2,0xffd54f],[-5,7,0xb0a8f0],[11,3,0xf6a8d8],[-8,-4,0xffd54f],[3,-7,0xb0a8f0]].forEach(p=>flower(p[0],p[1],p[2]));
+[[-10,-6],[-14,8],[-6,-11],[15,-6],[17,-9],[-16,0]].forEach(p=>rockNode(p[0],p[1],'rock',1));
+[[-13,-9],[-17,10]].forEach(p=>rockNode(p[0],p[1],'iron',5));
+rockNode(18,2,'cristal',10);
+crop(2.5,1.5,'Tomate',25);crop(3.7,1.5,'Carotte',25);crop(2.5,0.3,'Tomate',25);crop(3.7,0.3,'Carotte',25);
+crop(4.9,1.5,'Citrouille',40);crop(4.9,0.3,'Blé',30);
+fly(-4,-4,0xf6a8d8);fly(16,-3,0xf6a8d8);
+for(let i=0;i<6;i++){const a=i/6*Math.PI*2;fly(13+Math.cos(a)*4,-9+Math.sin(a)*4,0xfff176,0.6);}
+addNode({kind:'fish',mesh:new THREE.Object3D(),pos:new THREE.Vector3(13,0,-2.6),label:'Étang (pêche)',tool:'canne',range:3});
+addNode({kind:'fish',mesh:new THREE.Object3D(),pos:new THREE.Vector3(-20.4,0,4),label:'Rivière (pêche)',tool:'canne',range:3});
+addNode({kind:'npc',who:'liora',mesh:npc,pos:npc.position,label:'Liora — Tisseuse',tool:null,range:2.8});
+addNode({kind:'npc',who:'milo',mesh:milo,pos:milo.position,label:'Milo — Pêcheur',tool:null,range:2.8});
+addNode({kind:'pot',mesh:pot,pos:pot.position,label:'Marmite (cuisine)',tool:null,range:2.4});
+function sign(x,z){const g=new THREE.Group();const pl=new THREE.Mesh(new THREE.BoxGeometry(0.1,1,0.5),L(0xa9825a));pl.position.y=0.5;const bd=new THREE.Mesh(new THREE.BoxGeometry(1,0.5,0.08),L(0xd9c9a0));bd.position.y=1.05;g.add(pl,bd,blobShadow(0.4));g.position.set(x,0,z);scene.add(g);return g;}
+const siteSign=sign(-20,6);const siteNode=addNode({kind:'site',mesh:siteSign,pos:siteSign.position,label:'Chantier du pont ('+S.community+'/25 rondins)',site:'bridge',tool:null,range:2.8});if(S.bridge)siteNode.alive=false,siteNode.mesh.visible=false;
+const siteSign2=sign(-3.4,-2);const siteNode2=addNode({kind:'site',mesh:siteSign2,pos:siteSign2.position,label:'Fontaine du village ('+S.community2+'/15 pierres)',site:'fountain',tool:null,range:2.8});if(S.fountain)siteNode2.alive=false,siteNode2.mesh.visible=false;
+
+/* ================= ENTRÉES ================= */
 const stickBase=document.getElementById('stickBase'),knob=document.getElementById('stickKnob');
 const stick={id:null,x:0,y:0};const look={id:null,x:0,y:0};let yaw=0.7,pitch=0.45;
-function stickMove(e){const r=stickBase.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const d=Math.hypot(dx,dy),m=44;if(d>m){dx*=m/d;dy*=m/d;}knob.style.transform=`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;stick.x=dx/m;stick.y=dy/m;}
-stickBase.addEventListener('pointerdown',e=>{stick.id=e.pointerId;stickBase.setPointerCapture(e.pointerId);stickMove(e);});
+function stickMove(e){const r=stickBase.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const d=Math.hypot(dx,dy),m=48;if(d>m){dx*=m/d;dy*=m/d;}knob.style.transform='translate(calc(-50% + '+dx+'px), calc(-50% + '+dy+'px))';stick.x=dx/m;stick.y=dy/m;}
+stickBase.addEventListener('pointerdown',e=>{stick.id=e.pointerId;stickBase.setPointerCapture(e.pointerId);stickMove(e);e.stopPropagation();});
 addEventListener('pointermove',e=>{if(e.pointerId===stick.id)stickMove(e);if(e.pointerId===look.id){yaw-=(e.clientX-look.x)*0.005;pitch=Math.min(1.05,Math.max(0.08,pitch+(e.clientY-look.y)*0.004));look.x=e.clientX;look.y=e.clientY;}});
 addEventListener('pointerup',e=>{if(e.pointerId===stick.id){stick.id=null;stick.x=stick.y=0;knob.style.transform='translate(-50%,-50%)';}if(e.pointerId===look.id)look.id=null;});
+addEventListener('pointercancel',e=>{if(e.pointerId===stick.id){stick.id=null;stick.x=stick.y=0;knob.style.transform='translate(-50%,-50%)';}if(e.pointerId===look.id)look.id=null;});
 renderer.domElement.addEventListener('pointerdown',e=>{look.id=e.pointerId;look.x=e.clientX;look.y=e.clientY;});
 const keys={};addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 
-/* ---------- OUTILS & ACTION ---------- */
+/* ================= OUTILS & ACTION ================= */
 const toolBar=document.getElementById('toolBar'),actionBtn=document.getElementById('actionBtn');
 let selTool=0;
-TOOLS.forEach((t,i)=>{const b=document.createElement('button');b.className='tool'+(i===0?' sel':'');b.textContent=t.emoji;b.title=t.label;b.addEventListener('pointerdown',()=>{selTool=i;[...toolBar.children].forEach((c,j)=>c.classList.toggle('sel',j===i));actionBtn.textContent=t.emoji;});toolBar.appendChild(b);});
+TOOLS.forEach((t,i)=>{const b=document.createElement('button');b.className='tool'+(i===0?' sel':'');b.textContent=t.emoji;b.title=t.label;b.addEventListener('pointerdown',()=>{selTool=i;[].forEach.call(toolBar.children,(c,j)=>c.classList.toggle('sel',j===i));actionBtn.textContent=t.emoji;});toolBar.appendChild(b);});
 actionBtn.textContent=TOOLS[0].emoji;
-const needTool=n=>n.tool;
-let curTarget=null,photoCd=0,potCd=0;
-function findTarget(){let best=null,bd=1e9;for(const n of nodes){if(!n.alive)continue;const d=n.pos.distanceTo(player.position);if(d<(n.range||2.4)&&d<bd){bd=d;best=n;}}return best;}
+let curTarget=null,photoCd=0;
+function findTarget(){let best=null,bd=1e9;const now=performance.now();const hour=(6+S.cycle*24)%24;const night=hour>=20||hour<6;
+ for(const n of nodes){if(!n.alive)continue;if(n.kind==='butterfly'&&n.night&&!night)continue;if(n.kind==='butterfly'&&!n.night&&night)continue;
+  const d=n.pos.distanceTo(player.position);if(d<(n.range||2.4)&&d<bd){bd=d;best=n;}}return best;}
 function pop(n){n.popT=0.18;}
+function waterNear(n){let c=1;const big=lvl(S.skills.Agriculture)>=5;
+ for(const o of crops){if(o.stage!==0)continue;const d=o.pos.distanceTo(n.pos);if(d<0.6||(big&&d<1.8)){o.stage=1;o.growT=o.growMax;o.sp.visible=true;c++;}}
+ if(big&&c>1)toast('💧 Arrosage 3x3 !');return Math.max(1,c-1);}
 function doAction(){
   const now=performance.now();
   if(mini.active){resolveMini();return;}
+  if(dlgOpen){return;}
   const tool=TOOLS[selTool].id,n=curTarget;
   if(!n){if(tool==='photo'&&now>photoCd)return takePhoto(null);toast('Rien ici — approche-toi d\'une ressource ✨');return;}
-  if(n.kind==='crop'&&n.stage===1){toast(`En pousse… encore ${Math.ceil(n.growT)}s 💧`);return;}
-  const need=needTool(n);
-  if(need&&need!==tool){toast(`Il faut : ${TOOLS.find(t=>t.id===need).label}`);return;}
+  if(n.kind==='crop'&&n.stage===1){toast('En pousse… encore '+Math.ceil(n.growT)+'s 💧');return;}
+  if(n.kind==='ore'&&lvl(S.skills.Minage)<n.minLvl){toast('⛏️ Minage niveau '+n.minLvl+' requis !');return;}
+  if(n.tool&&n.tool!==tool){toast('Il faut : '+TOOLS.find(t=>t.id===n.tool).label);return;}
   switch(n.kind){
-    case 'bush':S.inv.Baie+=1;pop(n);toast('+1 Baie');gainXP('Cueillette',8);n.alive=false;n.mesh.visible=false;n.respawnAt=now+90000;dirty=true;break;
-    case 'shroom':S.inv.Champignon+=1;pop(n);toast('+1 Champignon');gainXP('Cueillette',6);n.alive=false;n.mesh.visible=false;n.respawnAt=now+120000;dirty=true;break;
+    case 'bush':S.inv.Baie++;pop(n);toast('+1 Baie');gainXP('Cueillette',8);n.alive=false;n.mesh.visible=false;n.respawnAt=now+90000;dirty=true;break;
+    case 'shroom':S.inv.Champignon++;pop(n);toast('+1 Champignon');gainXP('Cueillette',6);n.alive=false;n.mesh.visible=false;n.respawnAt=now+120000;dirty=true;break;
+    case 'flower':S.inv.Fleur++;pop(n);toast('+1 Fleur');gainXP('Cueillette',5);n.alive=false;n.mesh.visible=false;n.respawnAt=now+90000;dirty=true;break;
     case 'tree':S.inv.Bois+=2;n.wob=0.5;toast('+2 Bois');gainXP('Cueillette',10);n.alive=false;n.mesh.visible=false;n.respawnAt=now+150000;dirty=true;break;
-    case 'rock':n.hp--;pop(n);blip(500);gainXP('Minage',12);if(n.hp<=0){S.inv.Cuivre+=2;toast('+2 Cuivre');gainXP('Minage',20);n.alive=false;n.mesh.visible=false;n.respawnAt=now+240000;}dirty=true;break;
-    case 'crop':
-      if(n.stage===0){n.stage=1;n.growT=25;n.sp.visible=true;toast('Parcelle arrosée 💧');gainXP('Agriculture',5);}
-      else if(n.stage===2){S.inv[n.fruit]++;n.stage=0;n.sp.visible=n.fr.visible=false;toast(`+1 ${n.fruit}`);gainXP('Agriculture',25);}
+    case 'ore':n.hp--;pop(n);blip(500);gainXP('Minage',12);
+      if(n.hp<=0){if(n.ore==='rock'){S.inv.Pierre+=2;S.inv.Cuivre++;toast('+2 Pierre, +1 Cuivre');gainXP('Minage',22);}
+        else if(n.ore==='iron'){S.inv.Fer+=2;toast('+2 Fer');gainXP('Minage',40);}
+        else{S.inv.Cristal+=3;toast('+3 Cristal !');gainXP('Minage',80);}
+        n.alive=false;n.mesh.visible=false;n.respawnAt=now+300000;}
       dirty=true;break;
-    case 'fish':startMini('Pêche','🎣');break;
+    case 'crop':
+      if(n.stage===0){const c=waterNear(n);toast('Parcelle arrosée 💧'+(c>1?' (+'+c+')':''));gainXP('Agriculture',5);}
+      else if(n.stage===2){S.inv[n.fruit]++;n.stage=0;n.sp.visible=n.fr.visible=false;toast('+1 '+n.fruit);gainXP('Agriculture',25);}
+      dirty=true;break;
+    case 'fish':mini.reward='fish';startMini('Pêche','🎣');break;
     case 'butterfly':takePhoto(n);break;
-    case 'npc':openDialog();break;
-    case 'pot':
-      if(now<potCd){toast('La marmite mijote encore…');return;}
-      if(S.inv.Baie<1){toast('Il faut 1 Baie pour cuisiner 🌿');return;}
-      S.inv.Baie--;dirty=true;startMini('Cuisine','🍲');break;
-    case 'site':{
-      const b=S.inv.Bois;if(b<1){toast('Récolte du bois (🌿 sur les arbres) pour le pont !');return;}
-      S.community=Math.min(25,S.community+b);S.inv.Bois=0;n.label=`Chantier du pont (${S.community}/25 rondins)`;dirty=true;
-      if(S.community>=25&&!S.bridge){S.bridge=true;bridge.visible=true;toast('🏛️ Pont communautaire construit ! Merci à tous.');gainXP('Cueillette',40);}
-      else toast(`Rondins déposés : ${S.community}/25`);break;}
+    case 'npc':n.who==='milo'?openMilo():openLiora();break;
+    case 'pot':openPot();break;
+    case 'site':
+      if(n.site==='bridge'){const b=S.inv.Bois;if(b<1){toast('Il faut du Bois 🌿 (arbres) !');return;}
+        S.community=Math.min(25,S.community+b);S.inv.Bois=0;n.label='Chantier du pont ('+S.community+'/25 rondins)';dirty=true;
+        if(S.community>=25&&!S.bridge){S.bridge=true;bridge.visible=true;n.alive=false;n.mesh.visible=false;toast('🏛️ Pont construit !');gainXP('Cueillette',60);}
+        else toast('Rondins déposés : '+S.community+'/25');}
+      else{const p=S.inv.Pierre;if(p<1){toast('Il faut de la Pierre ⛏️ (filons) !');return;}
+        S.community2=Math.min(15,S.community2+p);S.inv.Pierre=0;n.label='Fontaine du village ('+S.community2+'/15 pierres)';dirty=true;
+        if(S.community2>=15&&!S.fountain){S.fountain=true;fountain.visible=true;n.alive=false;n.mesh.visible=false;toast('⛲ Fontaine construite ! Aura du village : +8% vitesse permanente.');gainXP('Minage',60);}
+        else toast('Pierres déposées : '+S.community2+'/15');}
+      break;
   }
   refreshPanel();
 }
 actionBtn.addEventListener('pointerdown',doAction);
 
-/* ---------- MINI-JEUX (pêche / cuisine) ---------- */
-const mini={active:false,mode:'',cur:0,dir:1,speed:1.5,za:0.35,zw:0.24,until:0};
+/* ================= MINI-JEUX ================= */
+const mini={active:false,mode:'',reward:'fish',cur:0,dir:1,speed:1.5,za:0.35,zw:0.24,until:0};
 const miniEl=document.getElementById('mini'),miniLabel=document.getElementById('miniLabel'),miniZone=document.getElementById('miniZone'),miniCur=document.getElementById('miniCur');
-function startMini(mode,icon){mini.active=true;mini.mode=mode;mini.cur=0;mini.dir=1;mini.speed=mode==='Pêche'?1.5:2.1;mini.za=0.2+Math.random()*0.55;mini.zw=mode==='Pêche'?0.22:0.16;mini.until=performance.now()+7000;miniLabel.textContent=`${icon} ${mode}…`;miniZone.style.left=(mini.za*100)+'%';miniZone.style.width=(mini.zw*100)+'%';miniEl.style.display='block';}
+function startMini(mode,icon){mini.active=true;mini.mode=mode;mini.cur=0;mini.dir=1;mini.speed=mode==='Pêche'?1.6:2.1;mini.za=0.2+Math.random()*0.55;mini.zw=mode==='Pêche'?0.22:0.16;mini.until=performance.now()+7000;miniLabel.textContent=icon+' '+mode+'…';miniZone.style.left=(mini.za*100)+'%';miniZone.style.width=(mini.zw*100)+'%';miniEl.style.display='block';}
 function endMini(){mini.active=false;miniEl.style.display='none';}
 function resolveMini(){
   const ok=mini.cur>=mini.za&&mini.cur<=mini.za+mini.zw;
-  if(mini.mode==='Pêche'){
-    if(ok){S.inv.Poisson++;toast('🐠 +1 Poisson !');gainXP('Pêche',30);blip(880);}
+  const hour=(6+S.cycle*24)%24,night=hour>=20||hour<6;
+  if(mini.reward==='fish'){
+    if(ok){const gold=(S.rain||night)&&Math.random()<0.3;
+      if(gold){S.inv['Poisson doré']++;toast('🌟 Poisson DORÉ ! Chance rare !');gainXP('Pêche',60);}
+      else{S.inv.Poisson++;toast('🐠 +1 Poisson !');gainXP('Pêche',30);}
+      blip(880);}
     else{toast('Le poisson s\'est échappé…');blip(220);}
-  }else{
-    if(ok){S.buffUntil=performance.now()+90000;buffOn=true;toast('✨ Concentration : +50% XP (90 s)');gainXP('Cuisine',15);blip(880);potCd=performance.now()+30000;}
+  }else if(mini.reward==='conc'){
+    if(ok){S.buffUntil=performance.now()+90000;buffOn=true;toast('✨ Concentration : +50% XP (90 s)');gainXP('Cuisine',15);blip(880);}
     else{toast('Ratatouille ratée… retente !');blip(220);}
+  }else{
+    if(ok){S.speedUntil=performance.now()+90000;toast('💨 Légèreté : +30% vitesse (90 s)');gainXP('Cuisine',20);blip(880);}
+    else{toast('Soupe éventée… retente !');blip(220);}
   }
   endMini();dirty=true;refreshPanel();
 }
 
-/* ---------- PHOTO SPIRITUELLE ---------- */
+/* ================= PHOTO ================= */
 const photoModal=document.getElementById('photoModal'),photoImg=document.getElementById('photoImg');
 function takePhoto(node){
   const now=performance.now();if(now<photoCd)return;photoCd=now+2500;
   photoImg.src=renderer.domElement.toDataURL('image/jpeg',0.72);
   photoModal.style.display='flex';S.inv.Photo++;
-  if(node){S.inv.Poudre_lum++;toast('🦋 Capturée ! +1 Poudre lumineuse');gainXP('Photo',20);
+  if(node){S.inv['Poudre lumineuse']++;toast(node.night?'🌟 Luciole capturée ! +1 Poudre lumineuse':'🦋 Papillon capturé ! +1 Poudre lumineuse');gainXP('Photo',node.night?35:20);
     const a=Math.random()*Math.PI*2;node.home.set(node.home.x+Math.cos(a)*45,1.2,node.home.z+Math.sin(a)*45);
     node.mesh.position.copy(node.home);node.alive=false;node.mesh.visible=false;node.respawnAt=now+45000;}
   else{toast('📸 Superbe paysage !');gainXP('Photo',5);}
@@ -235,30 +313,75 @@ function takePhoto(node){
 }
 document.getElementById('photoClose').addEventListener('pointerdown',()=>photoModal.style.display='none');
 
-/* ---------- PNJ : DIALOGUE & AMITIÉ ---------- */
-const dlg=document.getElementById('dlg');
-function hearts(){const lv=Math.min(10,Math.floor(S.friendship/50));return '❤️'.repeat(lv)+'🤍'.repeat(10-lv);}
-function addFriend(p){S.friendship+=p;const lv=Math.min(10,Math.floor(S.friendship/50));const i=[3,6,9].indexOf(lv);if(i>=0&&!S.quests[i]){S.quests[i]=true;toast(`📖 Nouvelle quête d'histoire de Liora (palier ${lv} ❤️)`);}dirty=true;}
-function openDialog(){
-  const day=S.day;
-  dlg.innerHTML=`<b>Liora</b> <span style="font-size:12px">${hearts()}</span><br><span style="font-size:13px">« La vallée respire mieux depuis que vous êtes là, Tisseur. »</span><br>
-  <button id="dChat">Parler (+10)</button><button id="dGift">Offrir une Tomate 🍅 (+15)</button><button id="dX">Fermer</button>`;
-  dlg.style.display='block';
-  dlg.querySelector('#dChat').onclick=()=>{if(S.chatDay===day)return toast('On a déjà bavardé aujourd\'hui !');S.chatDay=day;addFriend(10);toast('💖 +10 amitié');refreshPanel();};
-  dlg.querySelector('#dGift').onclick=()=>{if(S.giftDay===day)return toast('Un seul cadeau par jour !');if(S.inv.Tomate<1)return toast('Il vous faut une Tomate 🍅');S.inv.Tomate--;S.giftDay=day;addFriend(15);toast('💖 Liora adore ! +15 amitié');refreshPanel();};
-  dlg.querySelector('#dX').onclick=()=>dlg.style.display='none';
+/* ================= PNJ & BOUTIQUE ================= */
+const dlg=document.getElementById('dlg');let dlgOpen=false;
+function hearts(f){const lv=Math.min(10,Math.floor(f/50));return '❤️'.repeat(lv)+'🤍'.repeat(10-lv);}
+function addFriend(base,key,p){S[key]+=p;if(key==='friendship'){const lv=Math.min(10,Math.floor(S.friendship/50));const i=[3,6,9].indexOf(lv);if(i>=0&&!S.quests[i]){S.quests[i]=true;toast('📖 Nouvelle quête d\'histoire de Liora (palier '+lv+' ❤️)');}}dirty=true;}
+function closeDlg(){dlg.style.display='none';dlgOpen=false;}
+function openLiora(){
+  dlgOpen=true;const day=S.day;
+  let h='<b>Liora</b> <span style="font-size:12px">'+hearts(S.friendship)+'</b></span><br><span style="font-size:13px">« La vallée respire mieux depuis que vous êtes là, Tisseur. »</span><br>';
+  h+='<button id="dChat">Parler (+10)</button>';
+  h+='<button id="dGiftT">🍅 Tomate (+15)</button><button id="dGiftB">🫐 Baie (+8)</button><button id="dGiftC">🍄 Champignon (+2)</button><br>';
+  if(S.qL.day!==day&&!S.qL.active)h+='<button id="dQ">📋 Requête : apporter 5 Baies (40 🪙)</button>';
+  if(S.qL.active)h+='<button id="dQd">📦 Livrer 5 Baies (40 🪙)</button>';
+  h+='<br><span style="font-size:12px;opacity:.7">🪙 '+S.coins+' pièces — Boutique cosmétique :</span><br>';
+  h+='<button id="dSell">💰 Vendre tout ('+sellValue()+' 🪙)</button><br>';
+  COSMETICS.forEach(c=>{const owned=S.cos.indexOf(c.id)>=0;h+='<button data-cos="'+c.id+'" '+(S.coins<c.price&&!owned?'disabled':'')+'>'+(owned?'✔ ':'')+c.name+' ('+c.price+' 🪙)</button>';});
+  h+='<br><button id="dLan" '+(S.lantern||S.coins<150?'disabled':'')+'>'+(S.lantern?'✔ Lanterne posée':'🏮 Lanterne (150 🪙)')+'</button>';
+  h+='<button id="dX">Fermer</button>';
+  dlg.innerHTML=h;dlg.style.display='block';
+  dlg.querySelector('#dChat').onclick=()=>{if(S.chatDay===day)return toast('On a déjà bavardé aujourd\'hui !');S.chatDay=day;addFriend(S.friendship,'friendship',10);toast('💖 +10 amitié');dirty=true;openLiora();};
+  const gifts=[['dGiftT','Tomate',15],['dGiftB','Baie',8],['dGiftC','Champignon',2]];
+  gifts.forEach(g=>{dlg.querySelector('#'+g[0]).onclick=()=>{if(S.giftDay===day)return toast('Un cadeau par jour !');if(S.inv[g[1]]<1)return toast('Il vous faut : '+g[1]);S.inv[g[1]]--;S.giftDay=day;addFriend(S.friendship,'friendship',g[2]);toast('💖 Liora adore ! +'+g[2]+' amitié');dirty=true;openLiora();};});
+  const q=dlg.querySelector('#dQ');if(q)q.onclick=()=>{S.qL.active=true;S.qL.day=day;dirty=true;toast('📋 Requête acceptée : 5 Baies pour Liora');openLiora();};
+  const qd=dlg.querySelector('#dQd');if(qd)qd.onclick=()=>{if(S.inv.Baie<5)return toast('Il faut 5 Baies !');S.inv.Baie-=5;S.qL.active=false;S.qL.day=day;S.coins+=40;addFriend(S.friendship,'friendship',25);toast('🪙 +40 pièces, 💖 +25 amitié !');dirty=true;openLiora();};
+  dlg.querySelector('#dSell').onclick=()=>{const v=sellValue();if(!v)return toast('Rien à vendre !');for(const k in PRICES)if(k!=='Photo')S.inv[k]=0;S.coins+=v;toast('🪙 +'+v+' pièces !');dirty=true;refreshPanel();openLiora();};
+  [].forEach.call(dlg.querySelectorAll('[data-cos]'),b=>{b.onclick=()=>{const c=COSMETICS.find(x=>x.id===b.dataset.cos);const owned=S.cos.indexOf(c.id)>=0;
+    if(!owned){if(S.coins<c.price)return toast('Pas assez de pièces !');S.coins-=c.price;S.cos.push(c.id);}
+    if(c.kind==='hat')S.hat=c.id;else S.body=c.id;applyCos();toast('✨ '+c.name+' équipé !');dirty=true;refreshPanel();openLiora();};});
+  const dl2=dlg.querySelector('#dLan');if(dl2)dl2.onclick=()=>{if(S.lantern)return;if(S.coins<150)return toast('Pas assez de pièces !');S.coins-=150;S.lantern=true;location.reload();};
+  dlg.querySelector('#dX').onclick=closeDlg;
 }
+function openMilo(){
+  dlgOpen=true;const day=S.day;
+  let h='<b>Milo</b> <span style="font-size:12px">'+hearts(S.friendM)+'</span><br><span style="font-size:13px">« L\'étang murmure des secrets, surtout quand il pleut… »</span><br>';
+  h+='<button id="mChat">Parler (+10)</button><button id="mGift">🐠 Poisson (+20)</button><button id="mGiftG">🌟 Poisson doré (+40)</button><br>';
+  if(S.qM.day!==day&&!S.qM.active)h+='<button id="mQ">📋 Requête : apporter 2 Poissons (50 🪙)</button>';
+  if(S.qM.active)h+='<button id="mQd">📦 Livrer 2 Poissons (50 🪙)</button>';
+  h+='<br><button id="mX">Fermer</button>';
+  dlg.innerHTML=h;dlg.style.display='block';
+  dlg.querySelector('#mChat').onclick=()=>{if(S.chatDayM===day)return toast('On a déjà bavardé aujourd\'hui !');S.chatDayM=day;addFriend(S.friendM,'friendM',10);toast('💖 +10 amitié');dirty=true;openMilo();};
+  dlg.querySelector('#mGift').onclick=()=>{if(S.giftDayM===day)return toast('Un cadeau par jour !');if(S.inv.Poisson<1)return toast('Il faut un Poisson !');S.inv.Poisson--;S.giftDayM=day;addFriend(S.friendM,'friendM',20);toast('💖 Milo est ravi ! +20');dirty=true;openMilo();};
+  dlg.querySelector('#mGiftG').onclick=()=>{if(S.giftDayM===day)return toast('Un cadeau par jour !');if(S.inv['Poisson doré']<1)return toast('Il faut un Poisson doré ! (pluie ou nuit)');S.inv['Poisson doré']--;S.giftDayM=day;addFriend(S.friendM,'friendM',40);toast('💖✨ Milo est émerveillé ! +40');dirty=true;openMilo();};
+  const q=dlg.querySelector('#mQ');if(q)q.onclick=()=>{S.qM.active=true;S.qM.day=day;dirty=true;toast('📋 Requête acceptée : 2 Poissons pour Milo');openMilo();};
+  const qd=dlg.querySelector('#mQd');if(qd)qd.onclick=()=>{if(S.inv.Poisson<2)return toast('Il faut 2 Poissons !');S.inv.Poisson-=2;S.qM.active=false;S.qM.day=day;S.coins+=50;addFriend(S.friendM,'friendM',25);toast('🪙 +50 pièces, 💖 +25 !');dirty=true;openMilo();};
+  dlg.querySelector('#mX').onclick=closeDlg;
+}
+function openPot(){
+  dlgOpen=true;
+  let h='<b>🍲 Marmite</b><br><span style="font-size:13px">Cuisine rythmée : touche ACTION dans la zone verte !</span><br>';
+  h+='<button id="p1" '+(S.inv.Baie<1?'disabled':'')+'>🧪 Concentration — 1 Baie (+50% XP, 90s)</button>';
+  h+='<button id="p2" '+((S.inv.Champignon<1||S.inv.Baie<1)?'disabled':'')+'>🌀 Légèreté — 1 Champignon + 1 Baie (+30% vitesse, 90s)</button>';
+  h+='<button id="pX">Fermer</button>';
+  dlg.innerHTML=h;dlg.style.display='block';
+  dlg.querySelector('#p1').onclick=()=>{S.inv.Baie--;dirty=true;closeDlg();mini.reward='conc';startMini('Cuisine','🧪');};
+  dlg.querySelector('#p2').onclick=()=>{S.inv.Champignon--;S.inv.Baie--;dirty=true;closeDlg();mini.reward='speed';startMini('Cuisine','🌀');};
+  dlg.querySelector('#pX').onclick=closeDlg;
+}
+function sellValue(){let v=0;for(const k in PRICES)v+=S.inv[k]*PRICES[k];return v;}
 
-/* ---------- PANNEAU 🎒 ---------- */
+/* ================= PANNEAU ================= */
 const panel=document.getElementById('panel');
 function refreshPanel(){
-  let h='<h3>🎒 Inventaire</h3>';
-  for(const k in S.inv)if(S.inv[k]>0)h+=`<div class="row"><span>${k}</span><b>×${S.inv[k]}</b></div>`;
+  let h='<h3>🪙 '+S.coins+' pièces · 💰 valeur: '+sellValue()+'</h3>';
+  h+='<h3>🎒 Inventaire</h3>';
+  for(const k in S.inv)if(S.inv[k]>0)h+='<div class="row"><span>'+k+'</span><b>×'+S.inv[k]+'</b></div>';
   if(!Object.values(S.inv).some(v=>v>0))h+='<div class="row"><span style="opacity:.6">Vide — va récolter !</span></div>';
   h+='<h3>⭐ Maîtrises</h3>';
-  for(const k in S.skills){const l=lvl(S.skills[k]),p=(S.skills[k]-(l-1)*NEXT_XP)/NEXT_XP*100;h+=`<div class="row"><span>${k} <b>n.${l}</b></span><span style="font-size:11px">${Math.floor(p)}%</span></div><div class="bar"><i style="width:${p}%"></i></div>`;}
-  h+=`<h3>🤝 Liora</h3><div class="row"><span>${hearts()}</span><b>${S.friendship} pts</b></div>`;
-  h+=`<h3>🏛️ Projet communautaire</h3><div class="row"><span>Pont</span><b>${S.community}/25 rondins</b></div><div class="bar"><i style="width:${S.community/25*100}%"></i></div>`;
+  for(const k in S.skills){const l=lvl(S.skills[k]),p=(S.skills[k]-(l-1)*NEXT_XP)/NEXT_XP*100;h+='<div class="row"><span>'+k+' <b>n.'+l+'</b></span><span style="font-size:11px">'+Math.floor(p)+'%</span></div><div class="bar"><i style="width:'+p+'%"></i></div>';}
+  h+='<h3>🤝 Amitiés</h3><div class="row"><span>Liora</span><b>'+hearts(S.friendship)+'</b></div><div class="row"><span>Milo</span><b>'+hearts(S.friendM)+'</b></div>';
+  h+='<h3>🏛️ Projets</h3><div class="row"><span>Pont</span><b>'+S.community+'/25</b></div><div class="bar"><i style="width:'+(S.community/25*100)+'%"></i></div><div class="row"><span>Fontaine</span><b>'+S.community2+'/15</b></div><div class="bar"><i style="width:'+(S.community2/15*100)+'%"></i></div>';
   h+='<button id="wipe">Effacer la sauvegarde</button>';
   panel.innerHTML=h;panel.querySelector('#wipe').onclick=()=>{localStorage.removeItem(KEY);location.reload();};
 }
@@ -267,34 +390,45 @@ document.getElementById('introGo').addEventListener('pointerdown',()=>{document.
 if(S.seen)document.getElementById('intro').style.display='none';
 refreshPanel();
 
-/* ---------- AUDIO (bips doux) ---------- */
-let AC;function blip(f=660,d=0.08,g=0.035){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),ga=AC.createGain();o.type='sine';o.frequency.value=f;ga.gain.setValueAtTime(g,AC.currentTime);ga.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+d);o.connect(ga);ga.connect(AC.destination);o.start();o.stop(AC.currentTime+d);}catch(e){}}
+/* ================= AUDIO ================= */
+let AC;function blip(f,d,g){f=f||660;d=d||0.08;g=g||0.035;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),ga=AC.createGain();o.type='sine';o.frequency.value=f;ga.gain.setValueAtTime(g,AC.currentTime);ga.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+d);o.connect(ga);ga.connect(AC.destination);o.start();o.stop(AC.currentTime+d);}catch(e){}}
 
-/* ---------- CYCLE JOUR/NUIT & SAISONS ---------- */
+/* ================= TEMPS & MÉTÉO ================= */
 const STOPS=[{t:0,sky:new THREE.Color(0xffd9a0),sun:new THREE.Color(0xffc178),si:1.7,ai:0.55},{t:0.25,sky:new THREE.Color(0xbfe9ff),sun:new THREE.Color(0xfff3da),si:2.4,ai:0.7},{t:0.5,sky:new THREE.Color(0xffc9a1),sun:new THREE.Color(0xffab6b),si:1.5,ai:0.5},{t:0.72,sky:new THREE.Color(0x35406b),sun:new THREE.Color(0x93a8ff),si:0.4,ai:0.26},{t:0.85,sky:new THREE.Color(0x232c4e),sun:new THREE.Color(0x8fa8ff),si:0.3,ai:0.2},{t:1,sky:new THREE.Color(0xffd9a0),sun:new THREE.Color(0xffc178),si:1.7,ai:0.55}];
-const skyC=new THREE.Color(),sunC=new THREE.Color();
+const skyC=new THREE.Color(),skyC2=new THREE.Color(),sunC=new THREE.Color();
 function env(c){let i=0;while(STOPS[i+1].t<c)i++;const a=STOPS[i],b=STOPS[i+1],f=(c-a.t)/(b.t-a.t);skyC.lerpColors(a.sky,b.sky,f);sunC.lerpColors(a.sun,b.sun,f);return{si:a.si+(b.si-a.si)*f,ai:a.ai+(b.ai-a.ai)*f};}
-function nextDay(){S.day++;if((S.day-1)%SEASON_DAYS===0){S.season=(S.season+1)%4;ground.material.color.copy(SEASON_GROUND[S.season]);toast(`🍂 Nouvelle saison : ${SEASONS[S.season]}`);}dirty=true;}
+function nextDay(){S.day++;S.rain=Math.random()<0.33;if(S.rain)toast('🌧️ Il pleut aujourd\'hui : pousse x2 & poisson doré !');
+ if((S.day-1)%SEASON_DAYS===0){S.season=(S.season+1)%4;ground.material.color.copy(SEASON_GROUND[S.season]);toast('🍂 Nouvelle saison : '+SEASONS[S.season]);}dirty=true;}
+rain.visible=S.rain;
 
-/* ---------- BOUCLE PRINCIPALE ---------- */
-const promptEl=document.getElementById('prompt'),dayLabel=document.getElementById('dayLabel'),buffChip=document.getElementById('buffChip');
+/* ================= BOUCLE ================= */
+const promptEl=document.getElementById('prompt'),dayLabel=document.getElementById('dayLabel'),buffChip=document.getElementById('buffChip'),coinsChip=document.getElementById('coinsChip'),questChip=document.getElementById('questChip');
 let last=performance.now(),uiT=0;
 function loop(now){
   requestAnimationFrame(loop);
   const dt=Math.min(0.05,(now-last)/1000);last=now;
-  /* temps */
   S.cycle+=dt/DAY_LEN;if(S.cycle>=1){S.cycle-=1;nextDay();}
   const e=env(S.cycle);
-  scene.background=skyC;scene.fog.color.copy(skyC);
-  sun.color.copy(sunC);sun.intensity=e.si;hemi.intensity=e.ai;
+  const hour=(6+S.cycle*24)%24,night=hour>=20||hour<6;
+  skyC2.copy(skyC);if(S.rain)skyC2.multiplyScalar(0.7);
+  scene.background=skyC2;scene.fog.color.copy(skyC2);
+  sun.color.copy(sunC);sun.intensity=S.rain?e.si*0.6:e.si;hemi.intensity=S.rain?e.ai*0.8:e.ai;
   const a=S.cycle*Math.PI*2;
   sun.position.copy(player.position).add(new THREE.Vector3(Math.cos(a)*45,Math.sin(a)*35+6,18));sun.target=player;
+  /* lampadaires */
+  lamps.forEach(l=>{l.li.intensity=night?1.1:0;l.head.material.color.setHex(night?0xffd9a0:0x665f4a);});
+  if(lanternLamp.li){lanternLamp.li.intensity=night?1:0;lanternLamp.head.material.color.setHex(night?0xffd9a0:0x665f4a);}
+  /* pluie */
+  if(S.rain&&rain.visible){const p=rainGeo.attributes.position.array;
+    for(let i=0;i<500;i++){p[i*3+1]-=dt*16;if(p[i*3+1]<0){p[i*3]=player.position.x+(Math.random()-0.5)*44;p[i*3+1]=16+Math.random()*4;p[i*3+2]=player.position.z+(Math.random()-0.5)*44;}}
+    rainGeo.attributes.position.needsUpdate=true;}
   /* déplacement */
   let mx=stick.x,mz=stick.y;
   if(keys['w']||keys['arrowup'])mz-=1;if(keys['s']||keys['arrowdown'])mz+=1;if(keys['a']||keys['arrowleft'])mx-=1;if(keys['d']||keys['arrowright'])mx+=1;
   const ml=Math.hypot(mx,mz);if(ml>1){mx/=ml;mz/=ml;}
+  let spd=4.5;if(S.fountain)spd*=1.08;if(now<S.speedUntil)spd*=1.3;
   const fx=-Math.sin(yaw),fz=-Math.cos(yaw),rx=-fz,rz=fx;
-  const vx=(fx*-mz+rx*mx)*4.5*dt,vz=(fz*-mz+rz*mx)*4.5*dt;
+  const vx=(fx*-mz+rx*mx)*spd*dt,vz=(fz*-mz+rz*mx)*spd*dt;
   player.position.x+=vx;player.position.z+=vz;
   const pr=Math.hypot(player.position.x,player.position.z);if(pr>62){player.position.x*=62/pr;player.position.z*=62/pr;}
   if(ml>0.05){player.rotation.y=Math.atan2(vx,vz);pBody.position.y=0.72+Math.abs(Math.sin(now*0.012))*0.05;}
@@ -307,38 +441,45 @@ function loop(now){
     if(!n.alive){if(now>n.respawnAt){n.alive=true;n.mesh.visible=true;}continue;}
     if(n.popT>0){n.popT-=dt;const s=1+Math.sin((0.18-n.popT)/0.18*Math.PI)*0.15;n.mesh.scale.setScalar(s);if(n.popT<=0)n.mesh.scale.setScalar(1);}
     if(n.kind==='tree'&&n.wob>0){n.wob-=dt;n.mesh.rotation.z=Math.sin(n.wob*40)*0.06*n.wob;}
-    if(n.kind==='crop'&&n.stage===1){n.growT-=dt;if(n.growT<=0){n.stage=2;n.fr.visible=true;toast('🍅 Prêt à récolter !');}}
+    if(n.kind==='crop'&&n.stage===1){n.growT-=dt*(S.rain?2:1);if(n.growT<=0){n.stage=2;n.fr.visible=true;toast('🌱 '+n.fruit+' prêt à récolter !');dirty=true;}}
     if(n.kind==='butterfly'){
+      const nightNow=hour>=20||hour<6;
+      if(n.night!==nightNow){n.mesh.visible=false;continue;}
+      n.mesh.visible=true;
       const t=now*0.001;n.w1.rotation.y=Math.sin(t*18)*0.7;n.w2.rotation.y=-Math.sin(t*18)*0.7;
       n.turn-=dt;if(n.turn<=0){n.turn=1.5+Math.random()*2.5;const ang=Math.random()*Math.PI*2;n.dir.set(Math.cos(ang),0,Math.sin(ang));}
-      n.mesh.position.addScaledVector(n.dir,1.1*dt);n.mesh.position.y=n.home.y+Math.sin(t*2)*0.25;
+      n.mesh.position.addScaledVector(n.dir,n.speed*dt);n.mesh.position.y=n.home.y+Math.sin(t*2)*0.25;
       if(n.mesh.position.distanceTo(n.home)>6)n.mesh.position.lerp(n.home,0.02);
+      if(n.night)n.mesh.scale.setScalar(1+Math.sin(t*4)*0.15);
     }
   }
   pond.scale.setScalar(1+Math.sin(now*0.0012)*0.012);
   potG.material.color.setHSL(0.1,0.9,0.6+Math.sin(now*0.005)*0.15);
+  npc.position.y=Math.sin(now*0.002)*0.03;milo.position.y=Math.sin(now*0.002+1)*0.03;
   /* mini-jeu */
   if(mini.active){
     mini.cur+=mini.dir*mini.speed*dt;if(mini.cur>1){mini.cur=1;mini.dir=-1;}if(mini.cur<0){mini.cur=0;mini.dir=1;}
     miniCur.style.left=(mini.cur*100)+'%';
     if(now>mini.until){toast('Trop tard…');endMini();}
   }
-  /* prompt contextuel */
+  /* prompt */
   curTarget=findTarget();
-  if(curTarget&&!mini.active){
+  if(curTarget&&!mini.active&&!dlgOpen){
     let txt=curTarget.label;
     if(curTarget.kind==='crop')txt+=curTarget.stage===0?' — 💧 Arrosoir':curTarget.stage===1?' — pousse…':' — 🌿 Faucille';
-    else if(curTarget.tool)txt+=` — ${(TOOLS.find(t=>t.id===curTarget.tool)||{emoji:'✋'}).emoji}`;
+    else if(curTarget.tool)txt+=' — '+(TOOLS.find(t=>t.id===curTarget.tool)||{emoji:'✋'}).emoji;
     else txt+=' — ✋';
     promptEl.textContent=txt;promptEl.classList.add('on');
-  }else{if(!mini.active&&TOOLS[selTool].id==='photo')promptEl.textContent='📷 Photographie le paysage';else promptEl.textContent='';promptEl.classList.toggle('on',TOOLS[selTool].id==='photo');}
+  }else{if(!mini.active&&!dlgOpen&&TOOLS[selTool].id==='photo')promptEl.textContent='📷 Photographie le paysage';else promptEl.textContent='';promptEl.classList.toggle('on',TOOLS[selTool].id==='photo'&&!mini.active&&!dlgOpen);}
   /* UI */
   uiT+=dt;if(uiT>0.25){uiT=0;
-    const hour=(6+S.cycle*24)%24,hh=String(Math.floor(hour)).padStart(2,'0'),mm=String(Math.floor(hour%1*60)).padStart(2,'0');
-    dayLabel.textContent=`Jour ${S.day} · ${SEASONS[S.season]} · ${hh}:${mm}`;
-    const rem=Math.ceil((S.buffUntil-now)/1000);
-    if(now<S.buffUntil){buffChip.style.display='block';buffChip.textContent=`✨ Concentration ${rem}s`;}
-    else buffChip.style.display='none';
+    const hh=String(Math.floor(hour)).padStart(2,'0'),mm=String(Math.floor(hour%1*60)).padStart(2,'0');
+    dayLabel.textContent='Jour '+S.day+' · '+SEASONS[S.season]+' · '+(S.rain?'🌧️ ':'☀️ ')+hh+':'+mm;
+    coinsChip.textContent='🪙 '+S.coins;
+    let bt=[];if(now<S.buffUntil)bt.push('✨'+Math.ceil((S.buffUntil-now)/1000)+'s');if(now<S.speedUntil)bt.push('💨'+Math.ceil((S.speedUntil-now)/1000)+'s');
+    buffChip.style.display=bt.length?'block':'none';buffChip.textContent=bt.join(' ');
+    let qt=[];if(S.qL.active)qt.push('Liora: '+S.inv.Baie+'/5🫐');if(S.qM.active)qt.push('Milo: '+S.inv.Poisson+'/2🐠');
+    questChip.style.display=qt.length?'block':'none';questChip.textContent=qt.join(' · ');
   }
   if(now<S.buffUntil)buffOn=true;else if(buffOn){buffOn=false;toast('L\'effet de Concentration s\'est dissipé.');}
   renderer.render(scene,camera);

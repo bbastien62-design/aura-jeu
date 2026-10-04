@@ -504,6 +504,65 @@ $('rainChip').style.display=S.rain?'inline-block':'none';
 if(!S.daily||S.daily.day!==S.day)rollDaily();
 questChip();buildTools();
 let last=performance.now(),frame=0,pBuffs={b:false,s:false};
+/* ================= UX PACK (v12) : sauvegarde, objectifs, carnet, audio ================= */
+if(!window.__ux){window.__ux=1;
+try{
+/* --- carnet de découvertes (auto-rempli) --- */
+S.dex=S.dex||{};S.dexR=S.dexR||{};
+setInterval(function(){try{for(const it of ITEMS){if((S.inv[it]||0)>0&&!S.dex[it]){S.dex[it]=true;dirty=true;}}}catch(e){}},1500);
+function dexCount(){let c=0;for(const it of ITEMS)if(S.dex[it])c++;return c;}
+setInterval(function(){try{const c=dexCount();for(const th of [[10,2],[20,3],[26,5]]){if(c>=th[0]&&!S.dexR['d'+th[0]]){S.dexR['d'+th[0]]=true;addRenom(th[1]);toast('🏛️ Carnet : '+c+'/'+ITEMS.length+' ! Renom +'+th[1]);blip(900);}}}catch(e){}},4000);
+/* --- ambiance sonore : oiseaux le jour, grillons la nuit --- */
+let ambOn=(localStorage.getItem('aura_amb')||'1')==='1';
+function chirp(){try{const t0=AC.currentTime;const n=2+Math.random()*3|0;for(let i=0;i<n;i++){const o=AC.createOscillator(),g=AC.createGain();o.type='sine';const f=2400+Math.random()*1500;o.frequency.setValueAtTime(f,t0+i*0.13);o.frequency.exponentialRampToValueAtTime(f*0.7,t0+i*0.13+0.09);g.gain.setValueAtTime(0.012,t0+i*0.13);g.gain.exponentialRampToValueAtTime(0.0001,t0+i*0.13+0.1);o.connect(g);g.connect(AC.destination);o.start(t0+i*0.13);o.stop(t0+i*0.13+0.11);}}catch(e){}}
+function crickets(){try{const t0=AC.currentTime;for(let i=0;i<6;i++){const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.value=4200+Math.random()*300;g.gain.setValueAtTime(0.006,t0+i*0.07);g.gain.exponentialRampToValueAtTime(0.0001,t0+i*0.07+0.05);o.connect(g);g.connect(AC.destination);o.start(t0+i*0.07);o.stop(t0+i*0.07+0.06);}}catch(e){}}
+setInterval(function(){try{if(!ambOn||!AC)return;if(night){if(Math.random()<0.5)crickets();}else if(dayF>0.5&&Math.random()<0.35)chirp();}catch(e){}},1800);
+/* --- sac à 4 onglets (remplace l'ancien sac) --- */
+const TAB={cur:'sac'};
+openBag=function(){
+const el=openPanel();el.innerHTML='';
+const nav=document.createElement('div');
+function tabBtn(id,txt){const b=document.createElement('button');b.textContent=txt;b.style.cssText='flex:1;font-size:12px;padding:7px 2px;margin:0;'+(TAB.cur===id?'':'opacity:.55');b.addEventListener('click',()=>{TAB.cur=id;openBag();});return b;}
+nav.style.cssText='display:flex;gap:6px;margin-bottom:8px';
+nav.appendChild(tabBtn('sac','🎒 Sac'));nav.appendChild(tabBtn('obj','📜 Objectifs'));nav.appendChild(tabBtn('dex','🏛️ Carnet'));nav.appendChild(tabBtn('sav','💾 Sauv.'));
+el.appendChild(nav);
+if(TAB.cur==='sac'){
+el.appendChild(h3('🎒 Sac & Progrès'));el.appendChild(row('🪙 Pièces',S.coins));el.appendChild(row('🌟 Renom','+'+Math.min(50,S.renom)*2+'% XP'));
+const d=S.daily;if(d&&d.day===S.day)el.appendChild(row('📜 '+d.t,d.done?'✅':(d.p+'/'+d.n)));
+el.appendChild(h3('Compétences'));for(const k in S.skills){el.appendChild(row(k,'niv '+lvl(S.skills[k])));const bar=document.createElement('div');bar.className='bar';bar.innerHTML='<i style="width:'+((S.skills[k]%NEXT_XP)/NEXT_XP*100)+'%"></i>';el.appendChild(bar);}
+el.appendChild(h3('Inventaire'));ITEMS.forEach(it=>{if(S.inv[it]>0)el.appendChild(row(it,'×'+S.inv[it]));});
+}else if(TAB.cur==='obj'){
+const d=S.daily;if(d&&d.day===S.day)el.appendChild(h3('🏆 Défi du jour : '+d.t+' ('+(d.done?'terminé !':d.p+'/'+d.n)+')'));
+el.appendChild(h3('📜 Quêtes d\'outils'));
+for(const k in QUESTS){const q=QUESTS[k],st=S.q[k];
+if(st>=2){el.appendChild(row('✅ '+q.txt,''));continue;}
+let line=st===1?'⏳ En cours : '+q.txt:'🗨️ Parle à '+q.npc+' — '+q.txt;
+if(st===1){const txt=[];for(const need in q.need)txt.push(need+' '+(S.inv[need]||0)+'/'+q.need[need]);line+=' ('+txt.join(', ')+')';}
+el.appendChild(row(line,''));}
+el.appendChild(h3('🔨 Outils'));
+TOOLS.forEach(t=>{const cur=S.tools[t.id];
+if(cur<=0){const q=Object.keys(QUESTS).map(k=>QUESTS[k]).find(q=>q.tool===t.id);el.appendChild(row(t.e+' '+t.l,'🔒 quête'+(q?' ('+q.npc+')':'')));}
+else if(cur>=t.max)el.appendChild(row(t.e+' '+t.l,'MAX n.'+cur));
+else{const rec=RECIPES[t.id][cur+1];const txt=rec?Object.keys(rec).map(k=>k+' '+(S.inv[k]||0)+'/'+rec[k]).join(', '):'';el.appendChild(row(t.e+' '+t.l+' n.'+cur+' → n.'+(cur+1),txt));}});
+el.appendChild(h3('🏛️ Projets & Exploration'));
+el.appendChild(row(S.bridge?'✅ Pont':'Pont communautaire',S.bridge?'':S.community+'/25 rondins'));
+el.appendChild(row(S.fount?'✅ Fontaine':'Fontaine communautaire',S.fount?'':S.fountP+'/15 pierres'));
+el.appendChild(row(S.grove?'✅ Bosquet ouvert':'Arche de Brume',S.grove?'':'Cueillette n.5 (tu es n.'+lvl(S.skills.Cueillette)+')'));
+}else if(TAB.cur==='dex'){
+const c=dexCount();
+el.appendChild(h3('🏛️ Carnet des découvertes — '+c+'/'+ITEMS.length));
+el.appendChild(row('Paliers','10 →+2🌟 · 20 →+3🌟 · tout →+5🌟'));
+ITEMS.forEach(it=>el.appendChild(row(S.dex[it]?'✅ '+it:'❓ ?',S.dex[it]?'×'+(S.inv[it]||0)+' découvert':'')));
+}else{
+el.appendChild(h3('💾 Sauvegarde'));
+el.appendChild(row('Emplacement','ce navigateur'));
+const info=document.createElement('p');info.style.cssText='font-size:12px;margin:6px 0';info.textContent='Ta progression vit dans CE navigateur. Exporte-la avant de changer de téléphone ou de vider les données Chrome.';el.appendChild(info);
+el.appendChild(btn('📤 Copier ma sauvegarde',()=>{const data=localStorage.getItem(KEY)||'';const fb=()=>prompt('Copie ce texte et garde-le dans tes notes :',data);if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(data).then(()=>toast('📋 Sauvegarde copiée dans le presse-papiers !')).catch(fb);else fb();}));
+el.appendChild(btn('📥 Restaurer une sauvegarde',()=>{const txt=prompt('Colle ta sauvegarde ici :');if(!txt)return;try{const o=JSON.parse(txt);if(!o||!o.inv)throw 0;localStorage.setItem(KEY,JSON.stringify(o));toast('✅ Restaurée ! Rechargement…');setTimeout(()=>location.reload(),700);}catch(e){toast('⚠️ Sauvegarde invalide');}}));
+el.appendChild(btn((ambOn?'🔊':'🔇')+' Ambiance sonore : '+(ambOn?'ON':'OFF'),()=>{ambOn=!ambOn;localStorage.setItem('aura_amb',ambOn?'1':'0');toast(ambOn?'🔊 Oiseaux et grillons activés':'🔇 Ambiance coupée');openBag();}));
+}
+el.appendChild(btn('✕ Fermer',closeAll));};
+}catch(e){}}
 function loop(){requestAnimationFrame(loop);const now=performance.now();let dt=(now-last)/1000;last=now;if(dt>0.1)dt=0.1;frame++;
 S.cycle+=dt/DAY_LEN;if(S.cycle>=1){S.cycle-=1;S.day++;newDay();}
 hour=(6+S.cycle*24)%24;night=hour>=20||hour<5;

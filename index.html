@@ -606,6 +606,44 @@ if(frame%6===0){curTarget=findTarget();const pr=$('prompt');if(curTarget&&!mini.
 if(frame%15===0){$('coinChip').textContent='🪙 '+S.coins;const now2=performance.now();$('buffChip').style.display=now2<buffUntil?'inline-block':'none';$('spdChip').style.display=now2<spdUntil?'inline-block':'none';if(pBuffs.b&&now2>=buffUntil)toast('L\'effet Focus s\'est dissipé.');if(pBuffs.s&&now2>=spdUntil)toast('L\'effet Légèreté s\'est dissipé.');pBuffs.b=now2<buffUntil;pBuffs.s=now2<spdUntil;}
 renderer.render(scene,camera);
 }
+/* ================= COLOR FIX (v13) : saturation + herbe ================= */
+if(!window.__cfix){window.__cfix=1;
+try{
+/* 1) fin de la surexposition : exposition baissée + plafonds de lumière */
+renderer.toneMappingExposure=0.92;
+function clampI(obj,max){try{let i=obj.intensity;Object.defineProperty(obj,'intensity',{configurable:true,get(){return i;},set(v){i=Math.min(v,max);}});}catch(e){}}
+clampI(sun,1.15);clampI(hemi,0.42);
+/* 2) palette de ciel saturée (le brouillard la suit chaque frame) */
+function satHex(c,minS){const col=new THREE.Color(c),h={};col.getHSL(h);col.setHSL(h.h,Math.min(0.85,(h.s*1.5)+ (minS||0.12)),h.l*0.82);return col.getHex();}
+for(const e of SKY){e[1]=satHex(e[1]);e[2]=satHex(e[2]);}
+/* 3) sols de saison plus riches (l'herbe haute suit automatiquement) */
+const GS=[0x8ec45e,0xaec24e,0xc99a3f,0xd8e2e6];GS.forEach((c,i)=>SEASON_GROUND[i].setHex(c));
+groundMat.color.copy(SEASON_GROUND[S.season]);
+/* 4) herbe + fleurs + eau + chemin :重新 teinte, formes affinées */
+scene.traverse(o=>{
+if(!o.material)return;
+const g=o.geometry,pa=g&&g.parameters;
+/* herbe : cônes plus fins et plus courts (base re-ancrée au sol) */
+if(o.isInstancedMesh&&g.type==='ConeGeometry'&&pa&&pa.height>0.2&&pa.height<1.0&&pa.radius<0.15){
+const s=pa.height>0.5?0.5:0.72;g.scale(s,s,s);g.translate(0,(pa.height/2)*(1-s),0);
+if(o.material.color){o.material.color.setHSL(0.31,0.55,0.38);}}
+/* tiges de fleurs et petits coussins : vert plus franc */
+else if(o.isInstancedMesh&&g.type==='CylinderGeometry'&&pa&&pa.radiusTop<0.05){
+o.material.color.setHex(0x3f7a33);}
+/* têtes de fleurs : couleurs creusées (moins de pastel) */
+else if(o.isInstancedMesh&&o.instanceColor&&pa&&pa.radius===0.08){
+const a=o.instanceColor.array;for(let i=0;i<a.length;i++){a[i]=a[i]*0.68+0.1;}o.instanceColor.needsUpdate=true;}
+/* rochers/cailloux instanciés : gris plus_dense */
+else if(o.isInstancedMesh&&o.instanceColor&&(g.type==='DodecahedronGeometry')){
+const a=o.instanceColor.array;for(let i=0;i<a.length;i++){a[i]=a[i]*0.8+0.03;}o.instanceColor.needsUpdate=true;}
+/* chemin de pierre : moins clair */
+else if(o.isInstancedMesh&&g.type==='CircleGeometry'&&pa&&pa.radius===0.45){
+o.material.color.setHex(0xa89a80);}
+/* eau : bleu plus profond */
+else if(o.isMeshPhongMaterial&&o.material.color&&o.material.color.b>o.material.color.r+0.08){
+o.material.color.setHex(0x2e86c9);}
+});
+}catch(e){}}
 requestAnimationFrame(loop);
 setInterval(()=>{if(dirty)save();},5000);
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&dirty)save();});

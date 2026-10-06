@@ -567,9 +567,9 @@ function loop(){requestAnimationFrame(loop);const now=performance.now();let dt=(
 S.cycle+=dt/DAY_LEN;if(S.cycle>=1){S.cycle-=1;S.day++;newDay();}
 hour=(6+S.cycle*24)%24;night=hour>=20||hour<5;
 const inGrove=player.position.distanceTo(GROVE)<GROVE_R+2;
-let mx=stick.x,mz=stick.y;if(keys['w']||keys['z']||keys['arrowup'])mz=-1;if(keys['s']||keys['arrowdown'])mz=1;if(keys['a']||keys['q']||keys['arrowleft'])mx=-1;if(keys['d']||keys['arrowright'])mx=1;
-const mag=Math.hypot(mx,mz);
-if(mag>0.05){let sp=4.2*(now<spdUntil?1.3:1)*(S.fount?1.08:1)*(PLACE.on?0.6:1);const nx=mx/Math.max(1,mag),nz=mz/Math.max(1,mag);player.position.x+=nx*sp*dt;player.position.z+=nz*sp*dt;const r=Math.hypot(player.position.x,player.position.z);if(r>WORLD_R){player.position.x*=WORLD_R/r;player.position.z*=WORLD_R/r;}const targetRot=Math.atan2(nx,nz);let d=targetRot-player.rotation.y;while(d>Math.PI)d-=6.283;while(d<-Math.PI)d+=6.283;player.rotation.y+=d*Math.min(1,10*dt);}
+let mx=stick.x,my=stick.y;if(keys['w']||keys['z']||keys['arrowup'])my=-1;if(keys['s']||keys['arrowdown'])my=1;if(keys['a']||keys['q']||keys['arrowleft'])mx=-1;if(keys['d']||keys['arrowright'])mx=1;
+const mag=Math.hypot(mx,my);
+if(mag>0.05){let sp=4.2*(now<spdUntil?1.3:1)*(S.fount?1.08:1)*(PLACE.on?0.6:1);const nx=mx/Math.max(1,mag),ny=my/Math.max(1,mag);const wx=Math.cos(yaw)*nx+Math.sin(yaw)*ny,wz=-Math.sin(yaw)*nx+Math.cos(yaw)*ny;player.position.x+=wx*sp*dt;player.position.z+=wz*sp*dt;const r=Math.hypot(player.position.x,player.position.z);if(r>WORLD_R){player.position.x*=WORLD_R/r;player.position.z*=WORLD_R/r;}const targetRot=Math.atan2(wx,wz);let d=targetRot-player.rotation.y;while(d>Math.PI)d-=6.283;while(d<-Math.PI)d+=6.283;player.rotation.y+=d*Math.min(1,10*dt);}
 const cd=7.5,ch=1.6+pitch*4;
 camera.position.set(player.position.x+Math.sin(yaw)*cd*Math.cos(pitch),ch,player.position.z+Math.cos(yaw)*cd*Math.cos(pitch));
 camera.lookAt(player.position.x,1.2,player.position.z);
